@@ -1,1 +1,195 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: Arial, sans-serif;
+}
 
+body {
+  background: #f3f4f6;
+  color: #111827;
+  min-height: 100vh;
+}
+
+header {
+  background: #111827;
+  color: white;
+  text-align: center;
+  padding: 25px 15px;
+}
+
+header h1 {
+  font-size: 28px;
+  margin-bottom: 6px;
+}
+
+header p {
+  color: #d1d5db;
+}
+
+main {
+  width: 100%;
+  max-width: 600px;
+  margin: auto;
+  padding: 18px;
+}
+
+.card {
+  background: white;
+  padding: 20px;
+  margin-bottom: 16px;
+  border-radius: 15px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.07);
+}
+
+.card h2 {
+  margin-bottom: 15px;
+  font-size: 19px;
+}
+
+label {
+  display: block;
+  margin-top: 12px;
+  margin-bottom: 6px;
+  font-weight: bold;
+}
+
+input,
+select {
+  width: 100%;
+  padding: 13px;
+  border: 1px solid #d1d5db;
+  border-radius: 9px;
+  font-size: 15px;
+  outline: none;
+  background: white;
+}
+
+input:focus,
+select:focus {
+  border-color: #111827;
+}
+
+button {
+  width: 100%;
+  border: none;
+  border-radius: 9px;
+  padding: 14px;
+  margin-top: 15px;
+  background: #111827;
+  color: white;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+button:active {
+  transform: scale(0.98);
+}
+
+.secondary {
+  background: #374151;
+}
+
+.price {
+  font-size: 27px;
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.admin-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 15px;
+}
+
+.admin-box a {
+  flex: 1;
+  text-decoration: none;
+  color: #111827;
+  background: #f3f4f6;
+  padding: 13px;
+  border-radius: 9px;
+  font-weight: bold;
+  word-break: break-all;
+}
+
+.copy-btn {
+  width: auto;
+  margin: 0;
+  padding: 13px 15px;
+}
+
+.wa-button {
+  display: block;
+  text-align: center;
+  text-decoration: none;
+  background: #16a34a;
+  color: white;
+  font-weight: bold;
+  padding: 14px;
+  border-radius: 9px;
+  margin-top: 12px;
+}
+
+.order-result {
+  background: #f9fafb;
+  padding: 15px;
+  border-radius: 10px;
+  line-height: 1.6;
+}
+
+.order-result p {
+  margin-bottom: 9px;
+}
+
+.success {
+  background: #ecfdf5;
+  border: 1px solid #86efac;
+  color: #166534;
+  padding: 15px;
+  border-radius: 10px;
+  margin-top: 15px;
+  line-height: 1.6;
+}
+
+.error {
+  color: #dc2626;
+  margin-top: 12px;
+  font-weight: bold;
+}
+
+footer {
+  text-align: center;
+  padding: 25px;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+@media (max-width: 480px) {
+
+  header h1 {
+    font-size: 24px;
+  }
+
+  main {
+    padding: 12px;
+  }
+
+  .card {
+    padding: 16px;
+  }
+
+  .admin-box {
+    align-items: stretch;
+  }
+
+  .admin-box {
+    flex-direction: column;
+  }
+
+  .copy-btn {
+    width: 100%;
+  }
+}
