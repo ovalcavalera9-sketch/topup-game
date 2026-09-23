@@ -1,1 +1,398 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+  <title>Pembayaran - Vin Store</title>
+
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<header>
+  <h1>VIN STORE</h1>
+  <p>Pembayaran Pesanan</p>
+</header>
+
+<main>
+
+  <section class="card">
+
+    <h2>🧾 Detail Pesanan</h2>
+
+    <div id="orderInfo">
+      Memuat pesanan...
+    </div>
+
+  </section>
+
+  <section class="card">
+
+    <h2>💳 Pilih Pembayaran</h2>
+
+    <select id="paymentMethod">
+
+      <option value="">
+        -- Pilih Metode --
+      </option>
+
+      <option value="DANA">
+        DANA
+      </option>
+
+      <option value="GoPay">
+        GoPay
+      </option>
+
+      <option value="OVO">
+        OVO
+      </option>
+
+      <option value="QRIS">
+        QRIS
+      </option>
+
+    </select>
+
+  </section>
+
+  <section class="card">
+
+    <h2>📱 Admin</h2>
+
+    <p>
+      Untuk meminta QRIS atau bantuan pembayaran,
+      klik nomor admin di bawah.
+    </p>
+
+    <div class="admin-box">
+
+      <a
+        id="adminWhatsApp"
+        href="#"
+        target="_blank"
+      >
+        <span id="adminNumber">
+          6285718504288
+        </span>
+      </a>
+
+      <button
+        class="copy-btn"
+        onclick="copyAdmin()"
+      >
+        Salin
+      </button>
+
+    </div>
+
+    <a
+      id="requestQR"
+      class="wa-button"
+      href="#"
+      target="_blank"
+    >
+      📲 Klik untuk Minta QRIS
+    </a>
+
+  </section>
+
+  <section class="card">
+
+    <h2>💰 Pembayaran</h2>
+
+    <p>
+      Setelah melakukan pembayaran,
+      tekan tombol di bawah.
+    </p>
+
+    <button onclick="konfirmasiPembayaran()">
+      SAYA SUDAH MEMBAYAR
+    </button>
+
+    <div id="paymentResult"></div>
+
+  </section>
+
+</main>
+
+<footer>
+  <p>© 2026 Vin Store</p>
+</footer>
+
+<script>
+
+const API_URL =
+  "https://topup-backend-opal.vercel.app";
+
+/*
+  GANTI NOMOR INI DENGAN NOMOR WHATSAPP ADMIN KAMU.
+
+  Format:
+  628xxxxxxxxxx
+
+  Jangan pakai + atau spasi.
+*/
+const ADMIN =
+  "628xxxxxxxxxx";
+
+const params =
+  new URLSearchParams(
+    window.location.search
+  );
+
+const orderId =
+  params.get("order");
+
+const orderInfo =
+  document.getElementById("orderInfo");
+
+const paymentResult =
+  document.getElementById("paymentResult");
+
+document.getElementById(
+  "adminNumber"
+).textContent = ADMIN;
+
+document.getElementById(
+  "adminWhatsApp"
+).href =
+  "https://wa.me/" + ADMIN;
+
+document.getElementById(
+  "requestQR"
+).href =
+  "https://wa.me/" +
+  ADMIN +
+  "?text=" +
+  encodeURIComponent(
+    "Halo Admin Vin Store, saya ingin meminta QRIS untuk pesanan " +
+    (orderId || "")
+  );
+
+async function loadOrder() {
+
+  if (!orderId) {
+
+    orderInfo.innerHTML =
+      "<p class='error'>ID pesanan tidak ditemukan.</p>";
+
+    return;
+  }
+
+  try {
+
+    const response = await fetch(
+      API_URL +
+      "/api/orders/" +
+      encodeURIComponent(orderId)
+    );
+
+    const data =
+      await response.json();
+
+    if (!response.ok || !data.success) {
+
+      orderInfo.innerHTML =
+        "<p class='error'>" +
+        (data.message ||
+          "Pesanan tidak ditemukan.") +
+        "</p>";
+
+      return;
+    }
+
+    const order = data.order;
+
+    orderInfo.innerHTML = `
+
+      <div class="order-result">
+
+        <p>
+          <strong>ID Pesanan:</strong><br>
+          ${escapeHTML(order.id)}
+        </p>
+
+        <p>
+          <strong>Game:</strong><br>
+          ${escapeHTML(order.game)}
+        </p>
+
+        <p>
+          <strong>Player ID:</strong><br>
+          ${escapeHTML(order.playerId)}
+        </p>
+
+        <p>
+          <strong>Zone ID:</strong><br>
+          ${escapeHTML(order.zoneId)}
+        </p>
+
+        <p>
+          <strong>Nominal:</strong><br>
+          ${escapeHTML(order.item)}
+        </p>
+
+        <p>
+          <strong>Total:</strong><br>
+          Rp${Number(order.amount)
+            .toLocaleString("id-ID")}
+        </p>
+
+        <p>
+          <strong>Status:</strong><br>
+          ${escapeHTML(order.status)}
+        </p>
+
+      </div>
+    `;
+
+  } catch (error) {
+
+    console.error(error);
+
+    orderInfo.innerHTML =
+      "<p class='error'>Gagal terhubung ke server.</p>";
+  }
+}
+
+async function konfirmasiPembayaran() {
+
+  if (!orderId) {
+
+    alert("ID pesanan tidak ditemukan.");
+    return;
+  }
+
+  const payment =
+    document.getElementById(
+      "paymentMethod"
+    ).value;
+
+  if (!payment) {
+
+    alert(
+      "Pilih metode pembayaran terlebih dahulu."
+    );
+
+    return;
+  }
+
+  const yakin =
+    confirm(
+      "Pastikan kamu sudah melakukan pembayaran. Lanjut?"
+    );
+
+  if (!yakin) return;
+
+  try {
+
+    const response = await fetch(
+      API_URL +
+      "/api/orders/" +
+      encodeURIComponent(orderId) +
+      "/payment",
+      {
+        method: "POST",
+
+        headers: {
+          "Content-Type": "application/json"
+        },
+
+        body: JSON.stringify({
+          payment: payment
+        })
+      }
+    );
+
+    const data =
+      await response.json();
+
+    if (!response.ok || !data.success) {
+
+      paymentResult.innerHTML =
+        "<p class='error'>" +
+        (data.message ||
+          "Gagal mengirim konfirmasi.") +
+        "</p>";
+
+      return;
+    }
+
+    paymentResult.innerHTML = `
+
+      <div class="success">
+
+        <h3>✅ Konfirmasi Terkirim</h3>
+
+        <p>
+          Pesanan:
+          <strong>
+            ${escapeHTML(data.order.id)}
+          </strong>
+        </p>
+
+        <p>
+          Status:
+          <strong>
+            ${escapeHTML(data.order.status)}
+          </strong>
+        </p>
+
+        <p>
+          Silakan hubungi admin untuk proses
+          verifikasi pembayaran.
+        </p>
+
+      </div>
+    `;
+
+  } catch (error) {
+
+    console.error(error);
+
+    paymentResult.innerHTML =
+      "<p class='error'>" +
+      "Gagal menghubungi server." +
+      "</p>";
+  }
+}
+
+async function copyAdmin() {
+
+  try {
+
+    await navigator.clipboard.writeText(
+      ADMIN
+    );
+
+    alert(
+      "Nomor admin berhasil disalin."
+    );
+
+  } catch (error) {
+
+    alert(
+      "Gagal menyalin. Silakan tekan dan tahan nomor admin."
+    );
+  }
+}
+
+function escapeHTML(text) {
+
+  return String(text)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+loadOrder();
+
+</script>
+
+</body>
+</html>
