@@ -1,1 +1,262 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vin Store - Top Up Game</title>
+  <link rel="stylesheet" href="style.css">
+</head>
 
+<body>
+
+<header>
+  <h1>VIN STORE</h1>
+  <p>Top Up Game Cepat & Mudah</p>
+</header>
+
+<main>
+
+  <section class="card">
+    <h2>🎮 Pilih Game</h2>
+
+    <select id="game">
+      <option value="">-- Pilih Game --</option>
+      <option value="Mobile Legends">Mobile Legends</option>
+      <option value="Free Fire">Free Fire</option>
+      <option value="PUBG Mobile">PUBG Mobile</option>
+    </select>
+  </section>
+
+  <section class="card">
+    <h2>👤 Data Akun</h2>
+
+    <label>Player ID</label>
+    <input
+      type="text"
+      id="playerId"
+      placeholder="Masukkan Player ID"
+    >
+
+    <label>Zone ID</label>
+    <input
+      type="text"
+      id="zoneId"
+      placeholder="Masukkan Zone ID"
+    >
+  </section>
+
+  <section class="card">
+    <h2>💎 Pilih Nominal</h2>
+
+    <select id="item">
+      <option value="">-- Pilih Nominal --</option>
+      <option value="86 Diamonds">86 Diamonds</option>
+      <option value="172 Diamonds">172 Diamonds</option>
+      <option value="257 Diamonds">257 Diamonds</option>
+      <option value="344 Diamonds">344 Diamonds</option>
+      <option value="429 Diamonds">429 Diamonds</option>
+    </select>
+  </section>
+
+  <section class="card">
+    <h2>💰 Harga</h2>
+
+    <div class="price" id="price">
+      Rp0
+    </div>
+
+    <button onclick="buatPesanan()">
+      BELI SEKARANG
+    </button>
+  </section>
+
+  <section class="card">
+    <h2>🔎 Cek Pesanan</h2>
+
+    <input
+      type="text"
+      id="checkOrderId"
+      placeholder="Masukkan ID Pesanan"
+    >
+
+    <button class="secondary" onclick="cekPesanan()">
+      CEK PESANAN
+    </button>
+
+    <div id="result"></div>
+  </section>
+
+</main>
+
+<footer>
+  <p>© 2026 Vin Store</p>
+</footer>
+
+<script>
+const API_URL = "https://topup-backend-opal.vercel.app";
+
+const itemSelect = document.getElementById("item");
+const priceBox = document.getElementById("price");
+
+const harga = {
+  "86 Diamonds": 20000,
+  "172 Diamonds": 38000,
+  "257 Diamonds": 56000,
+  "344 Diamonds": 74000,
+  "429 Diamonds": 92000
+};
+
+itemSelect.addEventListener("change", function () {
+  const item = this.value;
+
+  if (harga[item]) {
+    priceBox.textContent =
+      "Rp" + harga[item].toLocaleString("id-ID");
+  } else {
+    priceBox.textContent = "Rp0";
+  }
+});
+
+async function buatPesanan() {
+
+  const game = document.getElementById("game").value;
+  const playerId = document.getElementById("playerId").value.trim();
+  const zoneId = document.getElementById("zoneId").value.trim();
+  const item = document.getElementById("item").value;
+
+  if (!game || !playerId || !zoneId || !item) {
+    alert("Lengkapi semua data terlebih dahulu.");
+    return;
+  }
+
+  const amount = harga[item];
+
+  try {
+
+    const response = await fetch(
+      API_URL + "/api/orders",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          game: game,
+          playerId: playerId,
+          zoneId: zoneId,
+          item: item,
+          amount: amount
+        })
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok || !data.success) {
+      alert(data.message || "Gagal membuat pesanan.");
+      return;
+    }
+
+    localStorage.setItem(
+      "lastOrderId",
+      data.order.id
+    );
+
+    window.location.href =
+      "payment.html?order=" +
+      encodeURIComponent(data.order.id);
+
+  } catch (error) {
+
+    console.error(error);
+
+    alert(
+      "Tidak dapat terhubung ke server."
+    );
+  }
+}
+
+async function cekPesanan() {
+
+  const orderId =
+    document.getElementById("checkOrderId")
+      .value.trim();
+
+  const result =
+    document.getElementById("result");
+
+  if (!orderId) {
+    alert("Masukkan ID pesanan.");
+    return;
+  }
+
+  result.innerHTML =
+    "<p>Memuat...</p>";
+
+  try {
+
+    const response = await fetch(
+      API_URL +
+      "/api/orders/" +
+      encodeURIComponent(orderId)
+    );
+
+    const data = await response.json();
+
+    if (!response.ok || !data.success) {
+
+      result.innerHTML =
+        "<p class='error'>" +
+        (data.message || "Pesanan tidak ditemukan.") +
+        "</p>";
+
+      return;
+    }
+
+    const order = data.order;
+
+    result.innerHTML = `
+      <div class="order-result">
+        <p><strong>ID Pesanan:</strong> ${escapeHTML(order.id)}</p>
+        <p><strong>Game:</strong> ${escapeHTML(order.game)}</p>
+        <p><strong>Nominal:</strong> ${escapeHTML(order.item)}</p>
+        <p><strong>Harga:</strong> Rp${Number(order.amount).toLocaleString("id-ID")}</p>
+        <p><strong>Status:</strong> ${escapeHTML(order.status)}</p>
+      </div>
+    `;
+
+  } catch (error) {
+
+    console.error(error);
+
+    result.innerHTML =
+      "<p class='error'>Gagal menghubungi server.</p>";
+  }
+}
+
+function escapeHTML(text) {
+
+  return String(text)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+window.addEventListener("DOMContentLoaded", function () {
+
+  const saved =
+    localStorage.getItem("lastOrderId");
+
+  if (saved) {
+    document.getElementById(
+      "checkOrderId"
+    ).value = saved;
+  }
+
+});
+</script>
+
+</body>
+  </html>
